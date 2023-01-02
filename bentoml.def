@@ -1,0 +1,12 @@
+
+Bootstrap: docker
+From: pytorch/pytorch:1.12.1-cuda11.3-cudnn8-runtime
+
+%post
+  DEBIAN_FRONTEND=noninteractive apt update -y
+  DEBIAN_FRONTEND=noninteractive apt upgrade -y
+  pip install bentoml[grpc]
+  pip install open_clip_torch
+  pip install transformers[torch]
+  pip install onnxruntime-gpu onnx protobuf==4.21.11
+  pip install imageio

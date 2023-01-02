@@ -1,0 +1,1 @@
+apptainer exec --env PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python bentoml.sif bentoml serve tibava:latest --production         
