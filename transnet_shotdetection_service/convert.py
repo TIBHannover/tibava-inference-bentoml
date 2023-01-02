@@ -33,7 +33,14 @@ def main():
         signatures={"__call__": {"batchable": True, "batch_dim": 0}},
         labels={"model": f"transnet"},
     )
+    if args.test:
+        np.random.seed(42)
+        test_image = (np.random.rand(1, 100, 27, 48, 3) * 255).astype(np.uint8)
+        print(model(torch.as_tensor(test_image)))
 
+        runner = bentoml.torchscript.get("transnet:latest").to_runner()
+        runner.init_local()
+        print(runner.run(test_image))
     return 0
 
 

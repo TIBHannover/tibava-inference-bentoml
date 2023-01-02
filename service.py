@@ -10,14 +10,14 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
 
 services_files = [
-    "clip_service.service",
-    "shot_type_classification_service.service",
+    # "clip_service.service",
+    # "shot_type_classification_service.service",
     "transnet_shotdetection_service.service",
-    "deepface_emotion_service.service",
-    "insightface_detector_service.service",
-    "insightface_feature_extraction_service.service",
-    "insightface_genderage_service.service",
-    "places_classification_service.service",
+    # "deepface_emotion_service.service",
+    # "insightface_detector_service.service",
+    # "insightface_feature_extraction_service.service",
+    # "insightface_genderage_service.service",
+    # "places_classification_service.service",
 ]
 
 runners = {}
