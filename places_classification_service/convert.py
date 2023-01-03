@@ -30,6 +30,16 @@ def main():
         labels={"model": f"places_classification"},
     )
 
+    if args.test:
+        np.random.seed(42)
+        test_image = (np.random.rand(1, 224, 224, 3) * 255).astype(np.uint8)
+        output = model(torch.as_tensor(test_image))
+        if isinstance(output, (list, set, tuple)):
+            for x in output:
+                print(x.shape)
+        else:
+
+            print(output.shape)
     return 0
 
 

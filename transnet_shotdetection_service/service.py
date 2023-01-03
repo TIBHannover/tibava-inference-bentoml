@@ -23,8 +23,8 @@ input_spec = JSON(pydantic_model=TransnetInput)
 
 
 class TransnetOutput(BaseModel):
-    single_frame_pred: List[float]
-    all_frames_pred: List[float]
+    single_frame_pred: List[List[List[float]]]
+    all_frames_pred: List[List[List[float]]]
 
 
 output_spec = JSON(pydantic_model=TransnetOutput)
@@ -34,7 +34,7 @@ def build_apis(service, runners):
     @service.api(input=input_spec, output=output_spec)
     def transnet(input: TransnetInput) -> TransnetOutput:
         data = np.asarray(input.data)
-        print(data.shape, flush=True)
         result = runners["transnet"].run(data)
-        print(result, flush=True)
-        return TransnetOutput(single_frame_pred=result[0], all_frames_pred=result[1])
+        return TransnetOutput(
+            single_frame_pred=result[0].cpu().numpy().tolist(), all_frames_pred=result[1].cpu().numpy().tolist()
+        )

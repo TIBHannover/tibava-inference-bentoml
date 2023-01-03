@@ -31,6 +31,22 @@ def main():
         labels={"model": f"insightface_feature_extraction"},
     )
 
+    if args.test:
+        runner = bentoml.onnx.get("insightface_feature_extraction:latest").to_runner()
+        runner.init_local()
+        # import onnxruntime as ort
+
+        # ort_sess = ort.InferenceSession(args.path, providers=["CPUExecutionProvider"])
+        np.random.seed(42)
+        test_image = (np.random.rand(1, 3, 112, 112) * 255).astype(np.uint8)
+        output = runner.run.run(test_image)
+        if isinstance(output, (list, set, tuple)):
+            for x in output:
+                print(x.shape)
+        else:
+
+            print(output.shape)
+
     return 0
 
 

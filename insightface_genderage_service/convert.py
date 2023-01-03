@@ -30,6 +30,21 @@ def main():
         signatures={"run": {"batchable": True, "batch_dim": 0}},
         labels={"model": f"insightface_genderage"},
     )
+    if args.test:
+        runner = bentoml.onnx.get("insightface_genderage:latest").to_runner()
+        runner.init_local()
+        # import onnxruntime as ort
+
+        # ort_sess = ort.InferenceSession(args.path, providers=["CPUExecutionProvider"])
+        np.random.seed(42)
+        test_image = (np.random.rand(1, 3, 96, 96) * 255).astype(np.uint8)
+        output = runner.run.run(test_image)
+        if isinstance(output, (list, set, tuple)):
+            for x in output:
+                print(x.shape)
+        else:
+
+            print(output.shape)
 
     return 0
 

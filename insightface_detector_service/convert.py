@@ -31,6 +31,21 @@ def main():
         labels={"model": f"insightface_detector"},
     )
 
+    if args.test:
+        np.random.seed(42)
+        test_image = (np.random.rand(1, 640, 640, 3) * 255).astype(np.uint8)
+        output = model(torch.as_tensor(test_image))
+        if isinstance(output, (list, set, tuple)):
+            for x in output:
+                print(x.shape)
+        else:
+
+            print(output.shape)
+
+        # runner = bentoml.torchscript.get("transnet:latest").to_runner()
+        # runner.init_local()
+        # print(runner.run(torch.as_tensor(test_image)))  # .to("cuda:0")))
+
     return 0
 
 

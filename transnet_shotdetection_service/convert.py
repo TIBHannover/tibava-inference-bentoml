@@ -40,7 +40,7 @@ def main():
 
         runner = bentoml.torchscript.get("transnet:latest").to_runner()
         runner.init_local()
-        print(runner.run(test_image))
+        print(runner.run(torch.as_tensor(test_image)))  # .to("cuda:0")))
     return 0
 
 

@@ -1,12 +1,10 @@
 import numpy as np
 import bentoml
-from bentoml.io import NumpyNdarray, Image, Text
+from bentoml.io import JSON
 
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from PIL.Image import Image
-    from numpy.typing import NDArray
+from pydantic import BaseModel
+from typing import List
 
 
 def build_runners():
@@ -15,8 +13,24 @@ def build_runners():
     }
 
 
+class InsightfaceFeatureExtractionInput(BaseModel):
+    data: List[List[List[List[float]]]]
+
+
+input_spec = JSON(pydantic_model=InsightfaceFeatureExtractionInput)
+
+
+class InsightfaceFeatureExtractionOutput(BaseModel):
+    embedding: List[List[float]]
+
+
+output_spec = JSON(pydantic_model=InsightfaceFeatureExtractionOutput)
+
+
 def build_apis(service, runners):
-    @service.api(input=NumpyNdarray(), output=NumpyNdarray())
-    def insightface_feature_extraction(input_series: np.ndarray) -> np.ndarray:
-        result = runners["insightface_feature_extraction"].run(input_series)
-        return result
+    @service.api(input=input_spec, output=output_spec)
+    def insightface_feature_extraction(input: InsightfaceFeatureExtractionInput) -> InsightfaceFeatureExtractionOutput:
+        data = np.asarray(input.data)
+        raw_result = runners["insightface_feature_extraction"].run.run(data)
+        print(raw_result.shape)
+        return InsightfaceFeatureExtractionOutput(embedding=raw_result.tolist())
