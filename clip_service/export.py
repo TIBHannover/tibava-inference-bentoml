@@ -34,8 +34,13 @@ def parse_args():
 
     parser.add_argument("-v", "--verbose", action="store_true", help="verbose output")
     parser.add_argument("-t", "--test", action="store_true", help="verbose output")
-    parser.add_argument("-m", "--model", default="xlm-roberta-large-ViT-H-14")
-    parser.add_argument("-p", "--pretrained", default="frozen_laion5b_s13b_b90k")
+
+    # ViT - B - 16
+    # openai
+    parser.add_argument("-m", "--model", default="ViT-B-16")
+    parser.add_argument("-p", "--pretrained", default="openai")
+    # parser.add_argument("-m", "--model", default="xlm-roberta-large-ViT-H-14")
+    # parser.add_argument("-p", "--pretrained", default="frozen_laion5b_s13b_b90k")
     parser.add_argument("-f", "--format", default="float32", choices=["float16", "float32", "bfloat16"])
     parser.add_argument("-d", "--device", default="cpu", choices=["cpu", "cuda"])
     args = parser.parse_args()
@@ -64,6 +69,8 @@ class ClipTextWrapper(torch.nn.Module):
         self.positional_embedding = clip.positional_embedding
         self.attn_mask = clip.attn_mask
         self.format = format
+        self.ln_final = clip.ln_final
+        self.text_projection = clip.text_projection
         self.to(format)
 
     def forward(self, text):
