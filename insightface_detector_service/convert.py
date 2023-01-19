@@ -15,6 +15,8 @@ def parse_args():
     parser.add_argument("-v", "--verbose", action="store_true", help="verbose output")
     parser.add_argument("-t", "--test", action="store_true", help="verbose output")
     parser.add_argument("-p", "--path")
+    parser.add_argument("-f", "--format", default="float32", choices=["float16", "float32", "bfloat16"])
+    parser.add_argument("-d", "--device", default="cpu", choices=["cpu", "cuda"])
     args = parser.parse_args()
     return args
 
@@ -22,7 +24,7 @@ def parse_args():
 def main():
     args = parse_args()
 
-    model = torch.jit.load(args.path)
+    model = torch.jit.load(args.path, map_location=torch.device(args.device))
 
     bentoml.torchscript.save_model(
         f"insightface_detector",
@@ -32,9 +34,11 @@ def main():
     )
 
     if args.test:
+
+        model.to(args.device)
         np.random.seed(42)
         test_image = (np.random.rand(1, 640, 640, 3) * 255).astype(np.uint8)
-        output = model(torch.as_tensor(test_image))
+        output = model(torch.as_tensor(test_image).to(args.device))
         if isinstance(output, (list, set, tuple)):
             for x in output:
                 print(x.shape)

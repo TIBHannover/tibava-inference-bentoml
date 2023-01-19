@@ -67,15 +67,22 @@ class ClipTextWrapper(torch.nn.Module):
         self.vocab_size = clip.vocab_size
         self.token_embedding = clip.token_embedding
         self.positional_embedding = clip.positional_embedding
-        self.attn_mask = clip.attn_mask
+        # self.attn_mask = clip.attn_mask
         self.format = format
         self.ln_final = clip.ln_final
         self.text_projection = clip.text_projection
+
+        self.register_buffer("attn_mask", clip.attn_mask, persistent=False)
         self.to(format)
+
+    # def to(self, *args, **kwargs):
+    #     super().to(*args, **kwargs)
+    #     self.attn_mask.to(*args, **kwargs)
 
     def forward(self, text):
         with torch.no_grad():
             cast_dtype = self.transformer.get_cast_dtype()
+            print(f"DEVICE {self.attn_mask.device}")
 
             x = self.token_embedding(text).to(cast_dtype)  # [batch_size, n_ctx, d_model]
 
@@ -150,14 +157,24 @@ class ImagePreprozessorWrapper(torch.nn.Module):
         # print(image.shape)
         # print(image.dtype)
         # print(type(image))
-        image = image.cpu().numpy().astype(np.uint8)
+        if isinstance(image, torch.Tensor):
+            image = image.cpu().numpy().astype(np.uint8)
+        image = image.astype(np.uint8)
         # print(type(image))
         # if isinstance(image, torch.Tensor):
         #     print("#####")
         #     print(image)
         #     print(image.shape)
         #     print(image.dtype)
-        return self.transform(image).unsqueeze(0).to(self.format)
+        result = []
+        if len(image.shape) == 4:
+            for x in range(image.shape[0]):
+                result.append(self.transform(image[x]))
+
+        else:
+            result.append(self.transform(image))
+
+        return torch.stack(result, axis=0).to(self.format)
 
 
 def main():
@@ -224,7 +241,7 @@ def main():
         num_rounds = 20
         for x in range(num_rounds):
 
-            test_image = (np.random.rand(512, 768, 3) * 255).astype(np.uint8)
+            test_image = (np.random.rand(1, 512, 768, 3) * 255).astype(np.uint8)
             image = image_preprocessor(test_image)
             print(image.shape)
 
@@ -238,6 +255,8 @@ def main():
             image_output = image_wrapper(image)
             print(image_output.shape)
             print(image_output[0, :10])
+
+            print(text.device)
 
             text_output = text_wrapper(text)
             print(text_output.shape)
