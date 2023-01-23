@@ -13,7 +13,8 @@ def parse_args():
 
     parser.add_argument("-v", "--verbose", action="store_true", help="verbose output")
     parser.add_argument("-t", "--test", action="store_true", help="verbose output")
-    parser.add_argument("-p", "--path")
+    parser.add_argument("-p", "--path")    
+    parser.add_argument("-d", "--device", default="cpu", choices=["cpu", "cuda"])
     args = parser.parse_args()
     return args
 
@@ -21,8 +22,7 @@ def parse_args():
 def main():
     args = parse_args()
 
-    model = torch.jit.load(args.path)
-
+    model = torch.jit.load(args.path, map_location=torch.device(args.device))
     bentoml.torchscript.save_model(
         f"places_classification",
         model,

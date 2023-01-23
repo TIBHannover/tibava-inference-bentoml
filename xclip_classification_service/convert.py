@@ -14,7 +14,8 @@ def parse_args():
 
     parser.add_argument("-v", "--verbose", action="store_true", help="verbose output")
     parser.add_argument("-t", "--test", action="store_true", help="verbose output")
-    parser.add_argument("-p", "--path")
+    parser.add_argument("-p", "--path")    
+    parser.add_argument("-d", "--device", default="cpu", choices=["cpu", "cuda"])
     args = parser.parse_args()
     return args
 

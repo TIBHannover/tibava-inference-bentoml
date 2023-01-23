@@ -9,5 +9,5 @@ From: pytorch/pytorch:1.13.1-cuda11.6-cudnn8-runtime
   pip install bentoml[grpc,io-json]
   pip install open_clip_torch
   pip install transformers[torch]
-  CMAKE_ARGS="-DONNX_USE_PROTOBUF_SHARED_LIBS=ON" pip install onnxruntime onnx protobuf==4.21.11
+  CMAKE_ARGS="-DONNX_USE_PROTOBUF_SHARED_LIBS=ON" pip install onnxruntime-gpu onnx protobuf==4.21.11
   pip install imageio

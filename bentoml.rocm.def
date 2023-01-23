@@ -1,0 +1,24 @@
+
+Bootstrap: docker
+# From: pytorch/pytorch:1.13.1-cuda11.6-cudnn8-runtime
+From: rocm/pytorch:rocm5.4_ubuntu20.04_py3.7_pytorch_1.12.1
+
+%post
+  export ONNXRUNTIME_REPO=https://github.com/Microsoft/onnxruntime
+  export ONNXRUNTIME_BRANCH=main
+  DEBIAN_FRONTEND=noninteractive apt update -y
+  DEBIAN_FRONTEND=noninteractive apt upgrade -y
+  DEBIAN_FRONTEND=noninteractive apt install cmake build-essential protobuf-compiler libprotobuf-dev protobuf-compiler -y 
+  git clone --single-branch --branch ${ONNXRUNTIME_BRANCH} --recursive ${ONNXRUNTIME_REPO} onnxruntime &&\
+    /bin/sh onnxruntime/dockerfiles/scripts/install_common_deps.sh &&\
+    cd onnxruntime &&\
+    /bin/sh ./build.sh --config Release --build_wheel --update --build --parallel --cmake_extra_defines\
+            ONNXRUNTIME_VERSION=$(cat ./VERSION_NUMBER) --use_rocm --rocm_home=/opt/rocm &&\
+    pip install /code/onnxruntime/build/Linux/Release/dist/*.whl &&\
+    cd ..
+  pip install onnx
+  pip install bentoml[grpc,io-json]
+  pip install open_clip_torch
+  pip install transformers[torch]
+  # CMAKE_ARGS="-DONNX_USE_PROTOBUF_SHARED_LIBS=ON" pip install onnxruntime-gpu onnx protobuf==4.21.11
+  pip install imageio
