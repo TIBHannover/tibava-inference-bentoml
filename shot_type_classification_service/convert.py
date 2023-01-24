@@ -13,7 +13,7 @@ def parse_args():
 
     parser.add_argument("-v", "--verbose", action="store_true", help="verbose output")
     parser.add_argument("-t", "--test", action="store_true", help="verbose output")
-    parser.add_argument("-p", "--path")    
+    parser.add_argument("-p", "--path")
     parser.add_argument("-d", "--device", default="cpu", choices=["cpu", "cuda"])
     args = parser.parse_args()
     return args
@@ -34,7 +34,7 @@ def main():
     if args.test:
         np.random.seed(42)
         test_image = (np.random.rand(1, 640, 640, 3) * 255).astype(np.uint8)
-        output = model(torch.as_tensor(test_image))
+        output = model(torch.as_tensor(test_image).to(args.device))
         if isinstance(output, (list, set, tuple)):
             for x in output:
                 print(x.shape)

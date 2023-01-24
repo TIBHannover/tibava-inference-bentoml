@@ -42,9 +42,11 @@ def main():
         if isinstance(output, (list, set, tuple)):
             for x in output:
                 print(x.shape)
+                print(x.device)
         else:
 
             print(output.shape)
+            print(output.device)
 
         # runner = bentoml.torchscript.get("transnet:latest").to_runner()
         # runner.init_local()
