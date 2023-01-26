@@ -7,6 +7,7 @@ import numpy as np
 
 import torch
 import bentoml
+from onnxmltools.utils.float16_converter import convert_float_to_float16
 
 
 def parse_args():
@@ -14,8 +15,9 @@ def parse_args():
 
     parser.add_argument("-v", "--verbose", action="store_true", help="verbose output")
     parser.add_argument("-t", "--test", action="store_true", help="verbose output")
-    parser.add_argument("-p", "--path")    
+    parser.add_argument("-p", "--path")
     parser.add_argument("-d", "--device", default="cpu", choices=["cpu", "cuda"])
+    parser.add_argument("--f16", action="store_true", help="verbose output")
     args = parser.parse_args()
     return args
 
@@ -24,6 +26,8 @@ def main():
     args = parse_args()
 
     model = onnx.load(args.path)
+    if args.f16:
+        model = convert_float_to_float16(model)
 
     bentoml.onnx.save_model(
         f"insightface_feature_extraction",

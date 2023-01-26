@@ -20,5 +20,5 @@ From: rocm/pytorch:rocm5.4_ubuntu20.04_py3.7_pytorch_1.12.1
   pip install bentoml[grpc,io-json]
   pip install open_clip_torch
   pip install transformers[torch]
-  # CMAKE_ARGS="-DONNX_USE_PROTOBUF_SHARED_LIBS=ON" pip install onnxruntime-gpu onnx protobuf==4.21.11
+  # CMAKE_ARGS="-DONNX_USE_PROTOBUF_SHARED_LIBS=ON" pip install onnxruntime-gpu onnx onnxmltools protobuf==4.21.11
   pip install imageio

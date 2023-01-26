@@ -11,6 +11,7 @@ services_files = [
     "insightface_feature_extraction_service.service",
     "insightface_genderage_service.service",
     "places_classification_service.service",
+    "xclip_classification_service.service",
 ]
 
 runners = {}
