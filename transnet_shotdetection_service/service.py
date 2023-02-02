@@ -1,9 +1,10 @@
 import numpy as np
 import bentoml
 from bentoml.io import NumpyNdarray
+from bentoml.io import Multipart
 from bentoml.io import JSON
 
-from typing import List
+from typing import List, Dict, Any
 from pydantic import BaseModel
 
 from numpy.typing import NDArray
@@ -15,26 +16,18 @@ def build_runners():
     }
 
 
-class TransnetInput(BaseModel):
-    data: List[List[List[List[List[float]]]]]
+input_spec = Multipart(data=NumpyNdarray())
 
-
-input_spec = JSON(pydantic_model=TransnetInput)
-
-
-class TransnetOutput(BaseModel):
-    single_frame_pred: List[List[List[float]]]
-    all_frames_pred: List[List[List[float]]]
-
-
-output_spec = JSON(pydantic_model=TransnetOutput)
+output_spec = Multipart(single_frame_pred=NumpyNdarray(), all_frames_pred=NumpyNdarray())
 
 
 def build_apis(service, runners):
     @service.api(input=input_spec, output=output_spec)
-    def transnet(input: TransnetInput) -> TransnetOutput:
-        data = np.asarray(input.data)
-        result = runners["transnet"].run(data)
-        return TransnetOutput(
-            single_frame_pred=result[0].cpu().numpy().tolist(), all_frames_pred=result[1].cpu().numpy().tolist()
-        )
+    async def transnet(data: NDArray[Any]) -> Dict[str, NDArray[Any]]:
+        # data = np.asarray()
+        print(data.shape)
+        result = await runners["transnet"].async_run(data)
+        return {
+            "single_frame_pred": result[0].cpu().numpy(),
+            "all_frames_pred": result[1].cpu().numpy(),
+        }

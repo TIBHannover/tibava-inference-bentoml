@@ -1,10 +1,13 @@
 import numpy as np
 import bentoml
 from bentoml.io import JSON
+from bentoml.io import NumpyNdarray
+from bentoml.io import Multipart
 
-
+from typing import List, Dict, Any
 from pydantic import BaseModel
-from typing import List
+
+from numpy.typing import NDArray
 
 
 def build_runners():
@@ -13,51 +16,35 @@ def build_runners():
     }
 
 
-class InsightfaceDetectorInput(BaseModel):
-    data: List[List[List[List[float]]]]
+input_spec = Multipart(data=NumpyNdarray())
 
-
-input_spec = JSON(pydantic_model=InsightfaceDetectorInput)
-# torch.Size([1, 12800, 1])
-# torch.Size([1, 3200, 1])
-# torch.Size([1, 800, 1])
-# torch.Size([1, 12800, 4])
-# torch.Size([1, 3200, 4])
-# torch.Size([1, 800, 4])
-# torch.Size([1, 12800, 10])
-# torch.Size([1, 3200, 10])
-# torch.Size([1, 800, 10])
-
-
-class InsightfaceDetectorOutput(BaseModel):
-    score_8: List[List[List[float]]]
-    score_16: List[List[List[float]]]
-    score_32: List[List[List[float]]]
-    bbox_8: List[List[List[float]]]
-    bbox_16: List[List[List[float]]]
-    bbox_32: List[List[List[float]]]
-    kps_8: List[List[List[float]]]
-    kps_16: List[List[List[float]]]
-    kps_32: List[List[List[float]]]
-
-
-output_spec = JSON(pydantic_model=InsightfaceDetectorOutput)
+output_spec = Multipart(
+    score_8=NumpyNdarray(),
+    score_16=NumpyNdarray(),
+    score_32=NumpyNdarray(),
+    bbox_8=NumpyNdarray(),
+    bbox_16=NumpyNdarray(),
+    bbox_32=NumpyNdarray(),
+    kps_8=NumpyNdarray(),
+    kps_16=NumpyNdarray(),
+    kps_32=NumpyNdarray(),
+)
 
 
 def build_apis(service, runners):
     @service.api(input=input_spec, output=output_spec)
-    def insightface_detector(input: InsightfaceDetectorInput) -> InsightfaceDetectorOutput:
-        data = np.asarray(input.data)
-        raw_result = runners["insightface_detector"].run(data)
+    async def insightface_detector(data: NDArray[Any]) -> Dict[str, NDArray[Any]]:
+        # data = np.asarray(input.data)
+        raw_result = await runners["insightface_detector"].async_run(data)
 
-        return InsightfaceDetectorOutput(
-            score_8=raw_result[0].cpu().numpy().tolist(),
-            score_16=raw_result[1].cpu().numpy().tolist(),
-            score_32=raw_result[2].cpu().numpy().tolist(),
-            bbox_8=raw_result[3].cpu().numpy().tolist(),
-            bbox_16=raw_result[4].cpu().numpy().tolist(),
-            bbox_32=raw_result[5].cpu().numpy().tolist(),
-            kps_8=raw_result[6].cpu().numpy().tolist(),
-            kps_16=raw_result[7].cpu().numpy().tolist(),
-            kps_32=raw_result[8].cpu().numpy().tolist(),
-        )
+        return {
+            "score_8": raw_result[0].cpu().numpy(),
+            "score_16": raw_result[1].cpu().numpy(),
+            "score_32": raw_result[2].cpu().numpy(),
+            "bbox_8": raw_result[3].cpu().numpy(),
+            "bbox_16": raw_result[4].cpu().numpy(),
+            "bbox_32": raw_result[5].cpu().numpy(),
+            "kps_8": raw_result[6].cpu().numpy(),
+            "kps_16": raw_result[7].cpu().numpy(),
+            "kps_32": raw_result[8].cpu().numpy(),
+        }

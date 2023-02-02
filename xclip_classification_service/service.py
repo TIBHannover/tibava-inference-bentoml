@@ -1,9 +1,14 @@
 import numpy as np
 import bentoml
 from bentoml.io import NumpyNdarray, Image, Text
+from bentoml.io import NumpyNdarray
+from bentoml.io import Multipart
+
+from typing import List, Dict, Any
 
 from bentoml.io import JSON
 
+from numpy.typing import NDArray
 
 from pydantic import BaseModel
 from typing import List
@@ -17,82 +22,43 @@ def build_runners():
     }
 
 
-class XCLIPVideoInput(BaseModel):
-    data: List[List[List[List[List[float]]]]]
+image_input_spec = Multipart(data=NumpyNdarray())
 
+image_output_spec = Multipart(video_features=NumpyNdarray(), image_features=NumpyNdarray())
 
-image_input_spec = JSON(pydantic_model=XCLIPVideoInput)
+text_input_spec = Multipart(text=NumpyNdarray())
 
+text_output_spec = Multipart(text_features=NumpyNdarray())
 
-class XCLIPVideoOutput(BaseModel):
-    video_features: List[List[float]]
-    image_features: List[List[List[float]]]
+sim_input_spec = Multipart(text_features=NumpyNdarray(), video_features=NumpyNdarray(), image_features=NumpyNdarray())
 
-
-image_output_spec = JSON(pydantic_model=XCLIPVideoOutput)
-
-
-class XCLIPTextInput(BaseModel):
-    text: List[List[float]]
-
-
-text_input_spec = JSON(pydantic_model=XCLIPTextInput)
-
-
-class XCLIPTextOutput(BaseModel):
-    text_features: List[List[float]]
-
-
-text_output_spec = JSON(pydantic_model=XCLIPTextOutput)
-
-
-class XCLIPSimInput(BaseModel):
-    text_features: List[List[float]]
-    video_features: List[List[float]]
-    image_features: List[List[List[float]]]
-
-
-sim_input_spec = JSON(pydantic_model=XCLIPSimInput)
-
-
-class XCLIPSimOutput(BaseModel):
-    probs: List[List[float]]
-    scale: float
-
-
-sim_output_spec = JSON(pydantic_model=XCLIPSimOutput)
+sim_output_spec = Multipart(probs=NumpyNdarray(), scale=NumpyNdarray())
 
 
 def build_apis(service, runners):
     @service.api(input=image_input_spec, output=image_output_spec)
-    def x_clip_video(input: XCLIPVideoInput) -> XCLIPVideoOutput:
-        data = np.asarray(input.data)
+    async def x_clip_video(data: NDArray[Any]) -> Dict[str, NDArray[Any]]:
+        # data = np.asarray(input.data)
         if len(data.shape) == 4 and data.shape[0] == 1:
             data = data[0, ...]
-        result = runners["x_clip_video"].run.run(data)
+        result = await runners["x_clip_video"].run.async_run(data)
         # print(result.shape)
-        return XCLIPVideoOutput(
-            video_features=result[0].tolist(),
-            image_features=result[1].tolist(),
-        )
+        return {"video_features": result[0], "image_features": result[1]}
 
     @service.api(input=text_input_spec, output=text_output_spec)
-    def x_clip_text(input: XCLIPTextInput) -> XCLIPTextOutput:
-        data = np.asarray(input.text)
+    async def x_clip_text(text: NDArray[Any]) -> Dict[str, NDArray[Any]]:
 
-        result = runners["x_clip_text"].run.run(data)
+        result = await runners["x_clip_text"].run.async_run(text)
         print(result.tolist(), flush=True)
-        return XCLIPTextOutput(text_features=result.tolist())
+        return {"text_features": result}
 
     @service.api(input=sim_input_spec, output=sim_output_spec)
-    def x_clip_sim(input: XCLIPSimInput) -> XCLIPSimOutput:
+    async def x_clip_sim(
+        text_features: NDArray, video_features: NDArray, image_features: NDArray
+    ) -> Dict[str, NDArray[Any]]:
 
-        text_features = np.asarray(input.text_features)
-        video_features = np.asarray(input.video_features)
-        image_features = np.asarray(input.image_features)
-
-        result = runners["x_clip_sim"].run.run(text_features, video_features, image_features)
-        return XCLIPSimOutput(
-            probs=result[0].tolist(),
-            scale=result[1].tolist(),
-        )
+        result = await runners["x_clip_sim"].run.async_run(text_features, video_features, image_features)
+        return {
+            "probs": result[0],
+            "scale": result[1],
+        }

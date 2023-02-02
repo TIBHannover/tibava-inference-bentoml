@@ -1,12 +1,14 @@
 import numpy as np
 import bentoml
 from bentoml.io import NumpyNdarray, Image, Text
+from bentoml.io import Multipart
 
 from bentoml.io import JSON
 
-
+from typing import List, Dict, Any
 from pydantic import BaseModel
-from typing import List
+
+from numpy.typing import NDArray
 
 
 def build_runners():
@@ -18,51 +20,33 @@ def build_runners():
     }
 
 
-class CLIPImageInput(BaseModel):
-    data: List[List[List[List[float]]]]
+image_input_spec = Multipart(data=NumpyNdarray())
+
+image_output_spec = Multipart(embedding=NumpyNdarray())
 
 
-image_input_spec = JSON(pydantic_model=CLIPImageInput)
+text_input_spec = Multipart(data=Text())
 
-
-class CLIPImageOutput(BaseModel):
-    embedding: List[List[float]]
-
-
-image_output_spec = JSON(pydantic_model=CLIPImageOutput)
-
-
-class CLIPTextInput(BaseModel):
-    data: str
-
-
-text_input_spec = JSON(pydantic_model=CLIPTextInput)
-
-
-class CLIPTextOutput(BaseModel):
-    embedding: List[List[float]]
-
-
-text_output_spec = JSON(pydantic_model=CLIPTextOutput)
+text_output_spec = Multipart(embedding=NumpyNdarray())
 
 
 def build_apis(service, runners):
     @service.api(input=image_input_spec, output=image_output_spec)
-    def clip_image_encoder(input: CLIPImageInput) -> CLIPImageOutput:
-        data = np.asarray(input.data)
+    async def clip_image_encoder(data: NDArray[Any]) -> Dict[str, NDArray[Any]]:
+
         if len(data.shape) == 4 and data.shape[0] == 1:
             data = data[0, ...]
-        result = runners["clip_image_preprocessor"].run(data)
-        result = runners["clip_image_encoder"].run(result)
+        result = await runners["clip_image_preprocessor"].async_run(data)
+        result = await runners["clip_image_encoder"].async_run(result)
         print(result.shape)
-        return CLIPImageOutput(embedding=result.cpu().numpy().tolist())
+        return {"embedding": result.cpu().numpy()}
 
     @service.api(input=text_input_spec, output=text_output_spec)
-    def clip_text_encoder(input: CLIPTextInput) -> CLIPTextOutput:
-
-        result = runners["clip_text_tokenizer"].run(input.data)
-        result = runners["clip_text_encoder"].run(result)
-        return CLIPTextOutput(embedding=result.cpu().numpy().tolist())
+    async def clip_text_encoder(data: str) -> Dict[str, NDArray[Any]]:
+        print(data, flush=True)
+        result = await runners["clip_text_tokenizer"].async_run(data)
+        result = await runners["clip_text_encoder"].async_run(result)
+        return {"embedding": result.cpu().numpy()}
 
     # @service.api(input=Text(), output=NumpyNdarray())
     # def clip_text_tokenizer(input_series: str) -> np.ndarray:

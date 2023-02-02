@@ -1,7 +1,12 @@
 import numpy as np
 import bentoml
 from bentoml.io import JSON
+from bentoml.io import NumpyNdarray
+from bentoml.io import Multipart
 
+
+from typing import List, Dict, Any
+from numpy.typing import NDArray
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
@@ -14,27 +19,17 @@ def build_runners():
     }
 
 
-class Places365Input(BaseModel):
-    data: List[List[List[List[float]]]]
+input_spec = Multipart(data=NumpyNdarray())
 
-
-input_spec = JSON(pydantic_model=Places365Input)
-
-
-class Places365Output(BaseModel):
-    embedding: List[List[float]]
-    prob: List[List[float]]
-
-
-output_spec = JSON(pydantic_model=Places365Output)
+output_spec = Multipart(embedding=NumpyNdarray(), prob=NumpyNdarray())
 
 
 def build_apis(service, runners):
     @service.api(input=input_spec, output=output_spec)
-    def places_classification(input: Places365Input) -> Places365Output:
-        data = np.asarray(input.data)
-        raw_result = runners["places_classification"].run(data)
-        return Places365Output(
-            embedding=raw_result[0].cpu().numpy().tolist(),
-            prob=raw_result[1].cpu().numpy().tolist(),
-        )
+    async def places_classification(data: NDArray[Any]) -> Dict[str, NDArray[Any]]:
+        # data = np.asarray(input.data)
+        raw_result = await runners["places_classification"].async_run(data)
+        return {
+            "embedding": raw_result[0].cpu().numpy(),
+            "prob": raw_result[1].cpu().numpy(),
+        }
