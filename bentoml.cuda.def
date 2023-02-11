@@ -7,6 +7,7 @@ From: pytorch/pytorch:1.13.1-cuda11.6-cudnn8-runtime
   DEBIAN_FRONTEND=noninteractive apt install cmake build-essential protobuf-compiler libprotobuf-dev protobuf-compiler -y 
   pip install bentoml[grpc,io-json]
   pip install open_clip_torch
+  pip install -U openai-whisper
   pip install transformers[torch]
   CMAKE_ARGS="-DONNX_USE_PROTOBUF_SHARED_LIBS=ON" pip install onnxruntime-gpu onnx onnxmltools protobuf==4.21.11
   pip install imageio

@@ -30,6 +30,9 @@ apptainer exec --bind $2:$HOME/bentoml --env PROTOCOL_BUFFERS_PYTHON_IMPLEMENTAT
 echo "xclip_classification_service"
 apptainer exec --bind $2:$HOME/bentoml --env PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python bentoml.sif python xclip_classification_service/convert.py --sim_path  $1/xclip/xclip_16_8_sim.onnx --text_path  $1/xclip/xclip_16_8_text.onnx --video_path  $1/xclip/xclip_16_8_video.onnx 
 
+echo "whisper_service"
+apptainer exec --bind $2:$HOME/bentoml --env PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python bentoml.sif python whisper_service/export.py 
+
 echo "build"
 apptainer exec --bind $2:$HOME/bentoml --env PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python --writable-tmpfs --env TEMP=${pwd}/tmp/ bentoml.sif bentoml build
 

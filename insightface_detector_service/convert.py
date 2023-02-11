@@ -29,7 +29,7 @@ def main():
     bentoml.torchscript.save_model(
         f"insightface_detector",
         model,
-        signatures={"__call__": {"batchable": True, "batch_dim": 0}},
+        signatures={"__call__": {"batchable": False}},
         labels={"model": f"insightface_detector"},
     )
 
