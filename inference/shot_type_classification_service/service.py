@@ -7,6 +7,8 @@ from bentoml.io import NumpyNdarray
 from numpy.typing import NDArray
 from typing import Dict, Any
 
+from inference.utils import dict_to_numpy, numpy_to_dict
+
 
 def build_runners():
     return {
@@ -14,13 +16,9 @@ def build_runners():
     }
 
 
-input_spec = Multipart(data=NumpyNdarray())
-
-output_spec = Multipart(prob=NumpyNdarray())
-
-
 def build_apis(service, runners):
-    @service.api(input=input_spec, output=output_spec)
-    def shot_type_classification(data: NDArray[Any]) -> Dict[str, NDArray[Any]]:
+    @service.api(input=JSON(), output=JSON())
+    def shot_type_classification(input: Dict) -> Dict:
+        data = dict_to_numpy(input.get("data"))
         raw_result = runners["shot_type_classification"].run(data)
-        return {"prob": raw_result.cpu().numpy()}
+        return {"prob": numpy_to_dict(raw_result.cpu().numpy())}

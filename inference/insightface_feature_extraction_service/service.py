@@ -6,10 +6,7 @@ from bentoml.io import NumpyNdarray
 from bentoml.io import Multipart
 from typing import List, Dict, Any
 
-
-from numpy.typing import NDArray
-from pydantic import BaseModel
-from typing import List
+from inference.utils import dict_to_numpy, numpy_to_dict
 
 
 def build_runners():
@@ -18,15 +15,11 @@ def build_runners():
     }
 
 
-input_spec = Multipart(data=NumpyNdarray())
-
-output_spec = Multipart(embedding=NumpyNdarray())
-
-
 def build_apis(service, runners):
-    @service.api(input=input_spec, output=output_spec)
-    async def insightface_feature_extraction(data: NDArray[Any]) -> Dict[str, NDArray[Any]]:
+    @service.api(input=JSON(), output=JSON())
+    async def insightface_feature_extraction(input: Dict) -> Dict:
+        data = dict_to_numpy(input.get("data"))
         # data = np.asarray(input.data)
         raw_result = await runners["insightface_feature_extraction"].run.async_run(data)
         # print(raw_result.shape)
-        return {"embedding":raw_result}
+        return {"embedding": numpy_to_dict(raw_result)}

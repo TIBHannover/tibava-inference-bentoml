@@ -14,8 +14,8 @@ mkdir -p tmp
 # echo "clip_service"
 # apptainer exec --nv --bind $2:$HOME/bentoml bentoml.cuda.sif python clip_service/export.py -f float16 -d cuda -t
 
-# echo "transnet_shotdetection_service"
-# apptainer exec --nv --bind $2:$HOME/bentoml bentoml.cuda.sif python transnet_shotdetection_service/convert.py -p $1/transnet_shotdetection/transnet_gpu.pt -d cuda -t
+echo "transnet_shotdetection_service"
+apptainer exec --nv --bind $2:$HOME/bentoml bentoml.cuda.sif python transnet_shotdetection_service/convert.py -p $1/transnet_shotdetection/transnet_gpu.pt -d cuda -t
 
 # echo "shot_type_classification_service"
 # apptainer exec --nv --bind $2:$HOME/bentoml bentoml.cuda.sif python shot_type_classification_service/convert.py -p $1/shot_type_classification/shot_type_classifier_e9-s3199_gpu.pt -t -d cuda
@@ -29,8 +29,8 @@ mkdir -p tmp
 # echo "xclip_classification_service"
 # apptainer exec --nv --bind $2:$HOME/bentoml --env PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python bentoml.cuda.sif python xclip_classification_service/convert.py -t -d cuda --sim_path  $1/xclip/xclip_16_8_sim.onnx --text_path  $1/xclip/xclip_16_8_text.onnx --video_path  $1/xclip/xclip_16_8_video.onnx --f16
 
-echo "whisper_service"
-apptainer exec --bind $2:$HOME/bentoml --env PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python bentoml.cuda.sif python whisper_service/export.py 
+# echo "whisper_service"
+# apptainer exec --bind $2:$HOME/bentoml --env PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python bentoml.cuda.sif python whisper_service/export.py 
 
 echo "build"
 apptainer exec --nv --bind $2:$HOME/bentoml --env PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python --writable-tmpfs --env TEMP=${pwd}/tmp/ bentoml.cuda.sif bentoml build

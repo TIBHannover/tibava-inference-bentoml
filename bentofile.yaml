@@ -1,9 +1,9 @@
-service: "service.py:svc"
+service: "inference.service:svc"
 labels:
   owner: springsteinm
   project: tibava
 include:
-- "*.py"
+- "inference/*.py"
 python:
   packages:
     - pytorch

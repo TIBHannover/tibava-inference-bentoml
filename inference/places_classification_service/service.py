@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 from typing import List
+from inference.utils import dict_to_numpy, numpy_to_dict
 
 
 def build_runners():
@@ -19,17 +20,13 @@ def build_runners():
     }
 
 
-input_spec = Multipart(data=NumpyNdarray())
-
-output_spec = Multipart(embedding=NumpyNdarray(), prob=NumpyNdarray())
-
-
 def build_apis(service, runners):
-    @service.api(input=input_spec, output=output_spec)
-    async def places_classification(data: NDArray[Any]) -> Dict[str, NDArray[Any]]:
+    @service.api(input=JSON(), output=JSON())
+    async def places_classification(input: Dict) -> Dict:
+        data = dict_to_numpy(input.get("data"))
         # data = np.asarray(input.data)
         raw_result = await runners["places_classification"].async_run(data)
         return {
-            "embedding": raw_result[0].cpu().numpy(),
-            "prob": raw_result[1].cpu().numpy(),
+            "embedding": numpy_to_dict(raw_result[0].cpu().numpy()),
+            "prob": numpy_to_dict(raw_result[1].cpu().numpy()),
         }

@@ -12,4 +12,5 @@ RUN pip install imageio
 
 ENV PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION="python"
 
+
 CMD ["bentoml", "serve", "tibava:latest", "--production"]

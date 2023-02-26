@@ -3,16 +3,16 @@ import bentoml
 import importlib
 
 services_files = [
-    "clip_service.service",
-    "shot_type_classification_service.service",
-    "transnet_shotdetection_service.service",
-    "deepface_emotion_service.service",
-    "insightface_detector_service.service",
-    "insightface_feature_extraction_service.service",
-    "insightface_genderage_service.service",
-    "places_classification_service.service",
-    "xclip_classification_service.service",
-    "whisper_service.service",
+    "inference.clip_service.service",
+    "inference.shot_type_classification_service.service",
+    "inference.transnet_shotdetection_service.service",
+    "inference.deepface_emotion_service.service",
+    "inference.insightface_detector_service.service",
+    "inference.insightface_feature_extraction_service.service",
+    "inference.insightface_genderage_service.service",
+    "inference.places_classification_service.service",
+    "inference.xclip_classification_service.service",
+    "inference.whisper_service.service",
 ]
 
 runners = {}

@@ -10,36 +10,13 @@ from pydantic import BaseModel
 
 from numpy.typing import NDArray
 
+from inference.utils import dict_to_numpy, numpy_to_dict
+
 
 def build_runners():
     return {
         "insightface_detector": bentoml.torchscript.get("insightface_detector:latest").to_runner(),
     }
-
-
-insightface_detector_input_spec = Multipart(data=NumpyNdarray())
-
-insightface_detector_output_spec = Multipart(
-    score_8=NumpyNdarray(),
-    score_16=NumpyNdarray(),
-    score_32=NumpyNdarray(),
-    bbox_8=NumpyNdarray(),
-    bbox_16=NumpyNdarray(),
-    bbox_32=NumpyNdarray(),
-    kps_8=NumpyNdarray(),
-    kps_16=NumpyNdarray(),
-    kps_32=NumpyNdarray(),
-)
-
-insightface_detector_nms_input_spec = Multipart(
-    data=NumpyNdarray(), det_thresh=NumpyNdarray(), nms_thresh=NumpyNdarray()
-)
-
-insightface_detector_nms_output_spec = Multipart(
-    boxes=NumpyNdarray(),
-    scores=NumpyNdarray(),
-    kpss=NumpyNdarray(),
-)
 
 
 def distance2bbox(points, distance, max_shape=None):
@@ -118,27 +95,29 @@ def nms(dets, nms_thresh):
 
 
 def build_apis(service, runners):
-    @service.api(input=insightface_detector_input_spec, output=insightface_detector_output_spec)
-    async def insightface_detector(data: NDArray[Any]) -> Dict[str, NDArray[Any]]:
+    @service.api(input=JSON(), output=JSON())
+    async def insightface_detector(data: Dict) -> Dict:
+        data = dict_to_numpy(input.get("data"))
         # data = np.asarray(input.data)
         raw_result = await runners["insightface_detector"].async_run(data)
 
         return {
-            "score_8": raw_result[0].cpu().numpy(),
-            "score_16": raw_result[1].cpu().numpy(),
-            "score_32": raw_result[2].cpu().numpy(),
-            "bbox_8": raw_result[3].cpu().numpy(),
-            "bbox_16": raw_result[4].cpu().numpy(),
-            "bbox_32": raw_result[5].cpu().numpy(),
-            "kps_8": raw_result[6].cpu().numpy(),
-            "kps_16": raw_result[7].cpu().numpy(),
-            "kps_32": raw_result[8].cpu().numpy(),
+            "score_8": numpy_to_dict(raw_result[0].cpu().numpy()),
+            "score_16": numpy_to_dict(raw_result[1].cpu().numpy()),
+            "score_32": numpy_to_dict(raw_result[2].cpu().numpy()),
+            "bbox_8": numpy_to_dict(raw_result[3].cpu().numpy()),
+            "bbox_16": numpy_to_dict(raw_result[4].cpu().numpy()),
+            "bbox_32": numpy_to_dict(raw_result[5].cpu().numpy()),
+            "kps_8": numpy_to_dict(raw_result[6].cpu().numpy()),
+            "kps_16": numpy_to_dict(raw_result[7].cpu().numpy()),
+            "kps_32": numpy_to_dict(raw_result[8].cpu().numpy()),
         }
 
-    @service.api(input=insightface_detector_nms_input_spec, output=insightface_detector_nms_output_spec)
-    async def insightface_detector_nms(
-        data: NDArray[Any], det_thresh: NDArray[Any], nms_thresh: NDArray[Any]
-    ) -> Dict[str, NDArray[Any]]:
+    @service.api(input=JSON(), output=JSON())
+    async def insightface_detector_nms(input: Dict) -> Dict:
+        data = dict_to_numpy(input.get("data"))
+        det_thresh = input.get("det_thresh")
+        nms_thresh = input.get("nms_thresh")
         start_time = time.time()
         # data = np.asarray(input.data)
         feat_stride_fpn = [8, 16, 32]
@@ -208,7 +187,7 @@ def build_apis(service, runners):
 
         print(f"API {time.time() - start_time}")
         return {
-            "boxes": det[:, :4],
-            "scores": det[:, 4],
-            "kpss": kpss,
+            "boxes": numpy_to_dict(det[:, :4]),
+            "scores": numpy_to_dict(det[:, 4]),
+            "kpss": numpy_to_dict(kpss),
         }
