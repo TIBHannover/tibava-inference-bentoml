@@ -31,7 +31,7 @@ def main():
     bentoml.torchscript.save_model(
         f"transnet",
         model,
-        signatures={"__call__": {"batchable": True, "batch_dim": 0}},
+        signatures={"__call__": {"batchable": False, "batch_dim": 0}},
         labels={"model": f"transnet"},
     )
     if args.test:
